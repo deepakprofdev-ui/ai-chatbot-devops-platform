@@ -6,7 +6,7 @@ def get_chatbot_reply(message):
     message = message.lower()
 
     if "hello" in message:
-        return "Hello! Welcome to the AI Campus Assistant."
+        return "Hello! Welcome to Lap AI."
 
     if "hi" in message:
         return "Hi! How can I help you today?"
