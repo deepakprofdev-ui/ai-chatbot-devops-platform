@@ -1,0 +1,302 @@
+/* =============================================
+   Sidebar.css
+   Lap AI | Production Frontend
+   ============================================= */
+
+/* ── Container ─────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--gradient-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  z-index: 100;
+  transition: transform var(--transition-normal), width var(--transition-normal);
+  border-right: 1px solid var(--border-sidebar);
+  overflow: hidden;
+}
+
+.sidebar.sidebar--closed {
+  transform: translateX(-100%);
+  width: 0;
+  min-width: 0;
+}
+
+/* ── Brand (top) ───────────────────────────── */
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border-sidebar);
+}
+
+.sidebar__logo {
+  width: 36px;
+  height: 36px;
+  background: var(--gradient-brand);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(108,99,255,0.4);
+  flex-shrink: 0;
+}
+
+.sidebar__logo svg {
+  color: #fff;
+}
+
+.sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__brand-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.sidebar__brand-tagline {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.45);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+/* ── New Chat Button ────────────────────────── */
+.sidebar__new-chat {
+  margin: 16px 14px 8px;
+  padding: 10px 14px;
+  background: rgba(108,99,255,0.18);
+  border: 1px solid rgba(108,99,255,0.35);
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,0.9);
+  font-size: 0.83rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  width: calc(100% - 28px);
+}
+
+.sidebar__new-chat:hover {
+  background: rgba(108,99,255,0.3);
+  border-color: rgba(108,99,255,0.55);
+  transform: translateY(-1px);
+}
+
+.sidebar__new-chat:active {
+  transform: translateY(0);
+}
+
+/* ── Navigation ─────────────────────────────── */
+.sidebar__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__section-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.3);
+  padding: 14px 10px 6px;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-sidebar);
+  font-size: 0.84rem;
+  font-weight: 450;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: var(--font-sans);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar__nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--text-sidebar-active);
+}
+
+.sidebar__nav-item.active {
+  background: rgba(108,99,255,0.22);
+  color: var(--text-sidebar-active);
+  font-weight: 500;
+}
+
+.sidebar__nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%; bottom: 20%;
+  width: 3px;
+  background: var(--gradient-brand);
+  border-radius: 0 3px 3px 0;
+}
+
+.sidebar__nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.sidebar__nav-item.active .sidebar__nav-icon,
+.sidebar__nav-item:hover .sidebar__nav-icon {
+  opacity: 1;
+}
+
+.sidebar__nav-badge {
+  margin-left: auto;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+/* ── Upgrade Card ───────────────────────────── */
+.sidebar__upgrade {
+  margin: 10px 14px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.25) 0%, rgba(168,85,247,0.18) 100%);
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sidebar__upgrade:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108,99,255,0.25);
+}
+
+.sidebar__upgrade-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  margin-bottom: 4px;
+}
+
+.sidebar__upgrade-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.sidebar__upgrade-desc {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.sidebar__upgrade-btn {
+  width: 100%;
+  padding: 7px;
+  background: var(--gradient-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar__upgrade-btn:hover {
+  opacity: 0.9;
+}
+
+/* ── User Profile ───────────────────────────── */
+.sidebar__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-sidebar);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.sidebar__profile:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.sidebar__avatar {
+  width: 34px;
+  height: 34px;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sidebar__profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar__profile-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__profile-role {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.4);
+}
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+  }
+  .sidebar.sidebar--closed {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+  }
+}
