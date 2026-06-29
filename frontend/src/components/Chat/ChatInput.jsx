@@ -1,14 +1,11 @@
 /**
- * ChatInput.jsx
- * Sticky input bar at the bottom of the chat.
- * Features: auto-resize textarea, Enter to send, Shift+Enter for newline,
- *           emoji button, attachment button, send button, loading state.
+ * ChatInput.jsx — Phase 5 + 6
+ * Respects enterToSend setting, character count, disabled states.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import './Chat.css';
 
-/* ── Icons ─────────────────────────────────── */
 const IconSend = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13"/>
@@ -22,21 +19,21 @@ const IconPaperclip = () => (
   </svg>
 );
 
-/* ── Component ─────────────────────────────── */
-export default function ChatInput({ onSend, isLoading }) {
-  const [value, setValue]       = useState('');
-  const textareaRef             = useRef(null);
-  const canSend                 = value.trim().length > 0 && !isLoading;
+export default function ChatInput({ onSend, isLoading, settings }) {
+  const [value, setValue]   = useState('');
+  const textareaRef         = useRef(null);
+  const MAX_CHARS           = 4000;
+  const canSend             = value.trim().length > 0 && !isLoading && value.length <= MAX_CHARS;
+  const enterToSend         = settings?.enterToSend !== false;
 
-  /* Auto-resize textarea */
+  /* Auto-resize */
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [value]);
 
-  /* Submit */
   const handleSubmit = useCallback(() => {
     if (!canSend) return;
     onSend(value);
@@ -47,43 +44,43 @@ export default function ChatInput({ onSend, isLoading }) {
     }
   }, [canSend, onSend, value]);
 
-  /* Keyboard shortcuts */
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
+    if (e.key === 'Enter') {
+      if (enterToSend && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit();
+      }
     }
-  }, [handleSubmit]);
+  }, [handleSubmit, enterToSend]);
 
-  /* Emoji placeholder (real picker can be added later) */
   const handleEmoji = () => {
     setValue(prev => prev + '😊');
     textareaRef.current?.focus();
   };
 
+  const overLimit = value.length > MAX_CHARS;
+
   return (
     <div className="chat-input-area">
       <div className="chat-input-area__inner">
-
         <div className="chat-input-area__hint">
-          Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line
+          {enterToSend
+            ? <><kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</>
+            : <><kbd>Shift+Enter</kbd> to send · <kbd>Enter</kbd> for new line</>
+          }
         </div>
 
-        <div className="chat-input" role="form" aria-label="Message input">
-
-          {/* Emoji */}
+        <div className={`chat-input${overLimit ? ' chat-input--over-limit' : ''}`}>
           <button
             type="button"
             className="chat-input__icon-btn"
             onClick={handleEmoji}
             aria-label="Insert emoji"
-            title="Emoji"
             disabled={isLoading}
           >
             😊
           </button>
 
-          {/* Textarea */}
           <textarea
             ref={textareaRef}
             className="chat-input__textarea"
@@ -93,41 +90,45 @@ export default function ChatInput({ onSend, isLoading }) {
             placeholder="Ask Lap AI anything…"
             rows={1}
             aria-label="Chat message"
-            aria-multiline="true"
             disabled={isLoading}
+            aria-describedby="char-count"
           />
 
-          {/* Right actions */}
           <div className="chat-input__actions">
-            {/* Attachment */}
+            {/* Character count (only shows near limit) */}
+            {value.length > MAX_CHARS * 0.8 && (
+              <span
+                id="char-count"
+                className={`chat-input__char-count${overLimit ? ' chat-input__char-count--over' : ''}`}
+                aria-live="polite"
+              >
+                {value.length}/{MAX_CHARS}
+              </span>
+            )}
+
             <button
               type="button"
               className="chat-input__icon-btn"
               aria-label="Attach file"
-              title="Attach file"
               disabled={isLoading}
             >
               <IconPaperclip />
             </button>
 
-            {/* Send */}
             <button
               type="button"
               className="chat-input__send-btn"
               onClick={handleSubmit}
               disabled={!canSend}
               aria-label={isLoading ? 'Sending…' : 'Send message'}
-              title="Send"
             >
-              {isLoading ? (
-                <div className="chat-input__spinner" aria-hidden="true" />
-              ) : (
-                <IconSend />
-              )}
+              {isLoading
+                ? <div className="chat-input__spinner" aria-hidden="true" />
+                : <IconSend />
+              }
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

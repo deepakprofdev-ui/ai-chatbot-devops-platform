@@ -1,0 +1,295 @@
+/* =============================================
+   SettingsModal.css — Phase 4
+   ============================================= */
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(6px);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease both;
+}
+
+.settings-modal {
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 500px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+  animation: modalIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+.settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  background: var(--bg-input);
+  z-index: 1;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.settings-modal__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.settings-modal__close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.settings-modal__close:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: transparent;
+}
+
+/* Body */
+.settings-modal__body {
+  padding: 8px 0 16px;
+}
+
+/* Section */
+.settings-section {
+  padding: 6px 0;
+}
+
+.settings-section__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 12px 24px 6px;
+}
+
+/* Row */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  transition: background var(--transition-fast);
+}
+
+.settings-row:hover {
+  background: rgba(108,99,255,0.04);
+}
+
+.settings-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-row__name {
+  font-size: 0.87rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-row__desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Toggle switch */
+.settings-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.settings-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.settings-toggle__track {
+  position: absolute;
+  inset: 0;
+  background: var(--border-light);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border: 1.5px solid var(--border-light);
+}
+
+.settings-toggle input:checked + .settings-toggle__track {
+  background: var(--gradient-brand);
+  border-color: transparent;
+}
+
+.settings-toggle__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+.settings-toggle input:checked ~ .settings-toggle__knob {
+  transform: translateX(20px);
+}
+
+/* Select */
+.settings-select {
+  padding: 6px 10px;
+  background: var(--bg-app);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.settings-select:focus {
+  border-color: var(--color-primary);
+}
+
+/* Divider */
+.settings-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}
+
+/* Footer buttons */
+.settings-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border-light);
+  gap: 10px;
+}
+
+.settings-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.settings-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-light);
+}
+
+.settings-btn--ghost:hover {
+  background: rgba(239,68,68,0.07);
+  color: #DC2626;
+  border-color: rgba(239,68,68,0.2);
+}
+
+.settings-btn--primary {
+  background: var(--gradient-brand);
+  color: white;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.3);
+}
+
+.settings-btn--primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* About section */
+.settings-about {
+  padding: 16px 24px;
+  text-align: center;
+}
+
+.settings-about__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.settings-about__name {
+  font-size: 1rem;
+  font-weight: 700;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.settings-about__version {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.settings-about__links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.settings-about__link {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(108,99,255,0.25);
+  transition: all var(--transition-fast);
+}
+
+.settings-about__link:hover {
+  background: var(--color-primary-light);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

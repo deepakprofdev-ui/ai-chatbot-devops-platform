@@ -1,6 +1,5 @@
 /* =============================================
-   Header.css
-   Lap AI | Production Frontend
+   Header.css — Updated Phase 4+
    ============================================= */
 
 .header {
@@ -20,7 +19,6 @@
   transition: background var(--transition-slow), border-color var(--transition-slow);
 }
 
-/* ── Left ─────────────────────────────────── */
 .header__left {
   display: flex;
   align-items: center;
@@ -39,7 +37,6 @@
   cursor: pointer;
   color: var(--text-secondary);
   transition: background var(--transition-fast), color var(--transition-fast);
-  flex-shrink: 0;
 }
 
 .header__menu-btn:hover {
@@ -57,7 +54,6 @@
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: var(--text-primary);
   line-height: 1.2;
   background: var(--gradient-brand);
   -webkit-background-clip: text;
@@ -72,7 +68,7 @@
   line-height: 1;
 }
 
-/* ── Right ────────────────────────────────── */
+/* Actions */
 .header__actions {
   display: flex;
   align-items: center;
@@ -92,6 +88,7 @@
   transition: all var(--transition-fast);
   border: 1px solid transparent;
   white-space: nowrap;
+  position: relative;
 }
 
 .header__btn--ghost {
@@ -106,21 +103,30 @@
   border-color: transparent;
 }
 
-.header__btn--icon {
-  padding: 7px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-secondary);
-  border-color: var(--border-light);
+.header__btn--icon-rel {
+  padding: 7px 12px;
 }
 
-.header__btn--icon:hover {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  border-color: transparent;
+/* Bookmark badge */
+.header__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
 }
 
-/* Status dot */
+/* Status */
 .header__status {
   display: flex;
   align-items: center;
@@ -150,7 +156,7 @@
   color: #16A34A;
 }
 
-/* Dark mode toggle */
+/* Dark toggle */
 .header__dark-toggle {
   position: relative;
   width: 46px;
@@ -188,13 +194,8 @@
   transform: translateY(-50%) translateX(23px);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .header {
-    padding: 0 14px;
-  }
+@media (max-width: 640px) {
+  .header { padding: 0 14px; }
   .header__status,
-  .header__btn span {
-    display: none;
-  }
+  .header__btn span:not(.header__badge) { display: none; }
 }

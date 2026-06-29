@@ -1,66 +1,96 @@
 /**
- * ChatWindow.jsx
- * Scrollable chat history area.
- * Handles: auto-scroll, empty state, typing indicator, error banner.
+ * ChatWindow.jsx — Phase 5 + 6
+ * Full markdown, bookmark, regenerate, loading skeleton, smooth scroll.
  */
 
 import { useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
+import LapLogo from '../../assets/LapLogo';
 import './Chat.css';
 
-/* ── Empty state icon ───────────────────────── */
-const SparkleIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
-  </svg>
-);
-
-/* ── Suggestion chips ───────────────────────── */
-const SUGGESTIONS = [
-  '✨ What can you do?',
-  '🧠 Explain machine learning',
-  '💡 Give me a project idea',
-  '🐛 Help debug my code',
+const QUICK_CARDS = [
+  { emoji: '🐳', label: 'Learn Docker',         prompt: 'Explain Docker containers and give me a beginner project idea' },
+  { emoji: '☁️', label: 'AWS Interview Prep',   prompt: 'Give me the top 10 AWS interview questions with answers' },
+  { emoji: '⚙️', label: 'Jenkins Pipeline',     prompt: 'Write a basic Jenkins CI/CD pipeline for a Node.js app' },
+  { emoji: '🧠', label: 'Explain Kubernetes',   prompt: 'Explain Kubernetes in simple terms with a real-world analogy' },
+  { emoji: '💻', label: 'Build a React App',    prompt: 'Give me a step-by-step plan to build a full-stack React app' },
+  { emoji: '📊', label: 'ML Evaluation',        prompt: 'How do I evaluate a machine learning model? Explain key metrics' },
 ];
 
-/* ── Component ─────────────────────────────── */
-export default function ChatWindow({ messages, isLoading, error, onSuggestion }) {
-  const bottomRef = useRef(null);
+/* ── Loading skeleton ────────────────────────── */
+function MessageSkeleton() {
+  return (
+    <div className="message message--bot" aria-hidden="true">
+      <div className="message__avatar" />
+      <div className="message__wrapper">
+        <div className="message__bubble skeleton-bubble">
+          <div className="skeleton-line skeleton-line--long" />
+          <div className="skeleton-line skeleton-line--medium" />
+          <div className="skeleton-line skeleton-line--short" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  /* Auto-scroll on new messages */
+/* ── Component ───────────────────────────────── */
+export default function ChatWindow({
+  messages,
+  isLoading,
+  error,
+  onSuggestion,
+  onBookmark,
+  onRegenerate,
+  isBookmarked,
+  settings,
+}) {
+  const bottomRef  = useRef(null);
+  const windowRef  = useRef(null);
+
+  /* Auto-scroll */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
   const isEmpty = messages.length === 0 && !isLoading;
+  const lastBotIdx = [...messages].reverse().findIndex(m => m.role === 'bot');
+  const lastBotId  = lastBotIdx >= 0 ? messages[messages.length - 1 - lastBotIdx]?.id : null;
 
   return (
-    <main className="chat-window" role="main" aria-label="Chat conversation">
-
-      {/* ── Empty / welcome state ── */}
+    <main
+      ref={windowRef}
+      className={`chat-window${settings?.compactMode ? ' chat-window--compact' : ''}`}
+      role="main"
+      aria-label="Chat conversation"
+    >
+      {/* ── Welcome state ── */}
       {isEmpty && (
         <div className="chat-window__empty">
-          <div className="chat-window__empty-icon" aria-hidden="true">
-            <SparkleIcon />
+          <div className="chat-window__empty-icon">
+            <LapLogo size={52} />
           </div>
           <h1 className="chat-window__empty-title">
-            Hello, I'm <span>Lap AI</span>
+            Hello, I'm <span>Lap AI</span> 👋
           </h1>
           <p className="chat-window__empty-subtitle">
-            Your intelligent assistant — ask me anything, from code to concepts.
+            What can I help you with today?
           </p>
-          <div className="chat-window__suggestions" role="list" aria-label="Quick start suggestions">
-            {SUGGESTIONS.map(s => (
+          <div className="chat-window__cards" role="list">
+            {QUICK_CARDS.map(({ emoji, label, prompt }) => (
               <button
-                key={s}
-                className="chat-window__chip"
+                key={label}
+                className="chat-window__card"
                 role="listitem"
-                onClick={() => onSuggestion?.(s.replace(/^[^\s]+\s/, ''))} // strip emoji
-                aria-label={`Start conversation: ${s}`}
+                onClick={() => onSuggestion?.(prompt)}
+                aria-label={`Ask about: ${label}`}
               >
-                {s}
+                <span className="chat-window__card-emoji" aria-hidden="true">{emoji}</span>
+                <span className="chat-window__card-label">{label}</span>
               </button>
             ))}
+          </div>
+          <div className="chat-window__divider">
+            <span>or type your own question below</span>
           </div>
         </div>
       )}
@@ -70,36 +100,39 @@ export default function ChatWindow({ messages, isLoading, error, onSuggestion })
         <div
           className="chat-window__messages"
           role="list"
-          aria-label="Chat messages"
           aria-live="polite"
           aria-atomic="false"
         >
-          {messages.map(msg => (
-            <MessageBubble key={msg.id} message={msg} />
+          {messages.map((msg, i) => (
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              onBookmark={onBookmark}
+              onRegenerate={onRegenerate}
+              isBookmarked={isBookmarked?.(msg.id)}
+              showTimestamps={settings?.showTimestamps !== false}
+              showAvatars={settings?.showAvatars !== false}
+              isLast={msg.id === lastBotId}
+            />
           ))}
 
-          {/* Typing indicator */}
+          {/* Typing indicator OR skeleton */}
           {isLoading && (
-            <MessageBubble
-              message={{ id: 'typing', role: 'typing', content: '' }}
-            />
+            settings?.animations !== false
+              ? <MessageBubble message={{ id: 'typing', role: 'typing', content: '' }} showTimestamps={false} showAvatars={settings?.showAvatars !== false} />
+              : <MessageSkeleton />
           )}
         </div>
       )}
 
       {/* ── Error banner ── */}
       {error && (
-        <div
-          className="chat-window__error"
-          role="alert"
-          aria-live="assertive"
-        >
+        <div className="chat-window__error" role="alert" aria-live="assertive">
           <span className="chat-window__error-icon" aria-hidden="true">⚠️</span>
           <span className="chat-window__error-text">{error}</span>
         </div>
       )}
 
-      {/* Scroll anchor */}
       <div ref={bottomRef} aria-hidden="true" />
     </main>
   );
