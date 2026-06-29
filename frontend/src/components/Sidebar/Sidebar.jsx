@@ -1,17 +1,11 @@
 /**
- * Sidebar.jsx
- * Left navigation panel for Lap AI.
+ * Sidebar.jsx — Updated: onNavSelect prop for bookmarks/settings routing.
  */
 
 import { useState } from 'react';
+import LapLogo from '../../assets/LapLogo';
 import './Sidebar.css';
 
-/* ── Icons (inline SVG to avoid extra deps) ─── */
-const IconSparkle = () => (
-  <svg className="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
-  </svg>
-);
 const IconChat = () => (
   <svg className="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -41,23 +35,54 @@ const IconUser = () => (
   </svg>
 );
 const IconPlus = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
+const IconChevron = ({ open }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}>
+    <polyline points="6 9 12 15 18 9"/>
   </svg>
 );
 
-/* ── Nav items config ──────────────────────── */
-const NAV_ITEMS = [
-  { id: 'chat',     label: 'Chat',      Icon: IconChat,     badge: null },
-  { id: 'history',  label: 'History',   Icon: IconHistory,  badge: null },
-  { id: 'bookmarks',label: 'Bookmarks', Icon: IconBookmark, badge: '3'  },
-  { id: 'profile',  label: 'Profile',   Icon: IconUser,     badge: null },
-  { id: 'settings', label: 'Settings',  Icon: IconSettings, badge: null },
-];
+function groupByDate(history) {
+  const now       = new Date();
+  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  const weekAgo   = new Date(today); weekAgo.setDate(today.getDate() - 7);
+  const groups    = { Today: [], Yesterday: [], 'This Week': [], Older: [] };
 
-/* ── Component ─────────────────────────────── */
-export default function Sidebar({ isOpen, darkMode }) {
-  const [activeItem, setActiveItem] = useState('chat');
+  [...history].reverse().forEach(s => {
+    const d   = new Date(s.timestamp);
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (day >= today)        groups['Today'].push(s);
+    else if (day >= yesterday) groups['Yesterday'].push(s);
+    else if (day >= weekAgo)   groups['This Week'].push(s);
+    else                       groups['Older'].push(s);
+  });
+  return groups;
+}
+
+export default function Sidebar({
+  isOpen,
+  onNewChat,
+  history,
+  onLoadSession,
+  currentSessionId,
+  onNavSelect,
+}) {
+  const [activeNav,   setActiveNav]   = useState('chat');
+  const [historyOpen, setHistoryOpen] = useState(true);
+
+  const handleNav = (id) => {
+    setActiveNav(id);
+    if (id === 'history') { setHistoryOpen(o => !o); return; }
+    onNavSelect?.(id);
+  };
+
+  const grouped = groupByDate(history);
 
   return (
     <aside className={`sidebar${isOpen ? '' : ' sidebar--closed'}`} aria-label="Main navigation">
@@ -65,7 +90,7 @@ export default function Sidebar({ isOpen, darkMode }) {
       {/* Brand */}
       <div className="sidebar__brand">
         <div className="sidebar__logo" aria-hidden="true">
-          <IconSparkle />
+          <LapLogo size={26} />
         </div>
         <div className="sidebar__brand-text">
           <span className="sidebar__brand-name">Lap AI</span>
@@ -74,39 +99,79 @@ export default function Sidebar({ isOpen, darkMode }) {
       </div>
 
       {/* New Chat */}
-      <button className="sidebar__new-chat" aria-label="Start new chat">
+      <button className="sidebar__new-chat" onClick={onNewChat} aria-label="Start new chat">
         <IconPlus /> New Chat
       </button>
 
-      {/* Navigation */}
+      {/* Nav */}
       <nav className="sidebar__nav" aria-label="Sidebar navigation">
         <span className="sidebar__section-label">Menu</span>
 
-        {NAV_ITEMS.map(({ id, label, Icon, badge }) => (
-          <button
-            key={id}
-            className={`sidebar__nav-item${activeItem === id ? ' active' : ''}`}
-            onClick={() => setActiveItem(id)}
-            aria-current={activeItem === id ? 'page' : undefined}
-          >
-            <Icon />
-            {label}
-            {badge && <span className="sidebar__nav-badge">{badge}</span>}
-          </button>
-        ))}
+        <button className={`sidebar__nav-item${activeNav === 'chat' ? ' active' : ''}`} onClick={() => handleNav('chat')}>
+          <IconChat /> Chat
+        </button>
+
+        <button
+          className={`sidebar__nav-item${activeNav === 'history' ? ' active' : ''}`}
+          onClick={() => handleNav('history')}
+          aria-expanded={historyOpen}
+        >
+          <IconHistory /> History
+          {history.length > 0 && <span className="sidebar__nav-badge">{history.length}</span>}
+          <span className="sidebar__nav-chevron"><IconChevron open={historyOpen && activeNav === 'history'} /></span>
+        </button>
+
+        {/* History list */}
+        {activeNav === 'history' && historyOpen && (
+          <div className="sidebar__history-list" role="list">
+            {history.length === 0 ? (
+              <div className="sidebar__history-empty">No past conversations yet.</div>
+            ) : (
+              Object.entries(grouped).map(([group, sessions]) =>
+                sessions.length === 0 ? null : (
+                  <div key={group}>
+                    <div className="sidebar__history-group-label">{group}</div>
+                    {sessions.map(session => (
+                      <button
+                        key={session.id}
+                        className={`sidebar__history-item${session.id === currentSessionId ? ' active' : ''}`}
+                        onClick={() => onLoadSession(session)}
+                        role="listitem"
+                        title={session.preview}
+                      >
+                        <span className="sidebar__history-dot" />
+                        <span className="sidebar__history-preview">{session.preview || 'Untitled'}</span>
+                      </button>
+                    ))}
+                  </div>
+                )
+              )
+            )}
+          </div>
+        )}
+
+        <button className={`sidebar__nav-item${activeNav === 'bookmarks' ? ' active' : ''}`} onClick={() => handleNav('bookmarks')}>
+          <IconBookmark /> Bookmarks
+        </button>
+
+        <button className={`sidebar__nav-item${activeNav === 'profile' ? ' active' : ''}`} onClick={() => handleNav('profile')}>
+          <IconUser /> Profile
+        </button>
+
+        <button className={`sidebar__nav-item${activeNav === 'settings' ? ' active' : ''}`} onClick={() => handleNav('settings')}>
+          <IconSettings /> Settings
+        </button>
       </nav>
 
-      {/* Upgrade Card */}
-      <div className="sidebar__upgrade" role="complementary" aria-label="Upgrade prompt">
+      {/* Upgrade */}
+      <div className="sidebar__upgrade">
         <div className="sidebar__upgrade-label">✦ Pro Plan</div>
         <div className="sidebar__upgrade-title">Unlock Full Access</div>
-        <div className="sidebar__upgrade-desc">
-          Priority responses, longer context, and advanced features.
-        </div>
+        <div className="sidebar__upgrade-desc">Priority responses, longer context, advanced features.</div>
         <button className="sidebar__upgrade-btn">Upgrade Now →</button>
       </div>
 
-      {/* User Profile */}
+      {/* Profile */}
       <div className="sidebar__profile" role="button" tabIndex={0} aria-label="User profile">
         <div className="sidebar__avatar" aria-hidden="true">DK</div>
         <div className="sidebar__profile-info">
