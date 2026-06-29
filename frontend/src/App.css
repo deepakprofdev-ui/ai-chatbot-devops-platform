@@ -1,0 +1,40 @@
+/* =============================================
+   App.css — Root layout
+   Lap AI | Production Frontend
+   ============================================= */
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-app);
+  transition: background var(--transition-slow);
+}
+
+/* Main content (everything right of sidebar) */
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---- Responsive ---- */
+
+/* Tablet: sidebar overlays */
+@media (max-width: 900px) {
+  .app-layout {
+    position: relative;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .app-layout {
+    flex-direction: column;
+  }
+}
