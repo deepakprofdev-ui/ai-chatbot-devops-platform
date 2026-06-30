@@ -4,17 +4,17 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import Sidebar         from './components/Sidebar/Sidebar';
-import Header          from './components/Header/Header';
-import ChatWindow      from './components/Chat/ChatWindow';
-import ChatInput       from './components/Chat/ChatInput';
-import BookmarksPanel  from './components/Bookmarks/BookmarksPanel';
-import SettingsModal   from './components/Settings/SettingsModal';
-import Toast           from './components/ui/Toast';
+import Sidebar from './components/Sidebar/Sidebar';
+import Header from './components/Header/Header';
+import ChatWindow from './components/Chat/ChatWindow';
+import ChatInput from './components/Chat/ChatInput';
+import BookmarksPanel from './components/Bookmarks/BookmarksPanel';
+import SettingsModal from './components/Settings/SettingsModal';
+import Toast from './components/ui/Toast';
 import { useBookmarks } from './hooks/useBookmarks';
-import { useSettings }  from './hooks/useSettings';
-import { useToast }     from './hooks/useToast';
-import { sendMessage }  from './services/api';
+import { useSettings } from './hooks/useSettings';
+import { useToast } from './hooks/useToast';
+import { sendMessage } from './services/api';
 import './App.css';
 
 /* ── localStorage helpers ─────────────────────── */
@@ -41,19 +41,39 @@ export default function App() {
   }, [settings.darkMode, updateSetting]);
 
   /* Messages */
-  const [messages,  setMessages]  = useState([]);
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error,     setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   /* Sidebar */
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Desktop/tablet: sidebar starts open (docked, part of layout)
+    // Mobile: sidebar starts closed (overlay, opened on demand)
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth > 900;
+  });
 
   /* History */
-  const [history,   setHistory]   = useState(loadHistory);
+  const [history, setHistory] = useState(loadHistory);
   const [sessionId, setSessionId] = useState(() => uid());
 
   useEffect(() => { saveHistory(history); }, [history]);
+  /* Keep sidebar behavior sane on resize — only auto-adjust on the
+     breakpoint crossing, never forcibly reopen/close mid-interaction */
+  useEffect(() => {
+    let lastWasDesktop = window.innerWidth > 900;
 
+    const handleResize = () => {
+      const isDesktop = window.innerWidth > 900;
+      if (isDesktop !== lastWasDesktop) {
+        setSidebarOpen(isDesktop); // crossing the breakpoint: dock open on desktop, hide on mobile
+        lastWasDesktop = isDesktop;
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   /* Bookmarks */
   const { bookmarks, addBookmark, removeBookmark, isBookmarked, clearBookmarks } = useBookmarks();
   const [bookmarksOpen, setBookmarksOpen] = useState(false);
@@ -173,7 +193,7 @@ export default function App() {
   /* ── Sidebar nav items ────────────────────── */
   const handleNavSelect = useCallback((id) => {
     if (id === 'bookmarks') setBookmarksOpen(true);
-    if (id === 'settings')  setSettingsOpen(true);
+    if (id === 'settings') setSettingsOpen(true);
   }, []);
 
   /* ── Render ───────────────────────────────── */
@@ -182,12 +202,13 @@ export default function App() {
 
       <Sidebar
         isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onOpen={() => setSidebarOpen(true)}
         onNewChat={handleNewChat}
         history={history}
         onLoadSession={handleLoadSession}
         currentSessionId={sessionId}
         onNavSelect={handleNavSelect}
-        darkMode={settings.darkMode}
       />
 
       <div className="app-main">

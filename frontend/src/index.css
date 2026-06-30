@@ -146,3 +146,13 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Add to index.css */
+@supports (padding: max(0px)) {
+  .header {
+    padding-top: env(safe-area-inset-top);
+  }
+  .chat-input-area {
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
+}

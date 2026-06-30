@@ -293,3 +293,21 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+@media (max-width: 420px) {
+  .settings-overlay { padding: 12px; }
+  .settings-modal {
+    max-height: 92vh;
+  }
+  .settings-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .settings-row--accent {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .settings-swatches {
+    padding-top: 6px;
+  }
+}

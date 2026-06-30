@@ -199,3 +199,15 @@
   .header__status,
   .header__btn span:not(.header__badge) { display: none; }
 }
+
+@media (max-width: 420px) {
+  .header__actions {
+    gap: 4px;
+  }
+  .header__status {
+    display: none;
+  }
+  .header__btn--ghost:not(.header__btn--icon-rel) span {
+    display: none;
+  }
+}

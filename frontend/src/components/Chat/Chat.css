@@ -691,14 +691,47 @@ body.no-animations .message {
    RESPONSIVE
    ══════════════════════════════════════════════ */
 
-@media (max-width: 700px) {
-  .chat-window__cards { grid-template-columns: repeat(2, 1fr); }
+/* Update existing @media (max-width: 480px) block in Chat.css */
+@media (max-width: 480px) {
+  .chat-window__cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .chat-window__card {
+    padding: 12px 12px;
+  }
+  .chat-window__card-label {
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+  .chat-window__messages { padding: 0 10px; }
+  .chat-input-area      { padding: 8px 10px 14px; }
+  .message__wrapper     { max-width: 86%; }
+  .message__actions     { opacity: 1; }
+}
+
+/* New: extra-small phones (iPhone SE = 375px and below) */
+@media (max-width: 375px) {
+  .chat-window__empty-title {
+    font-size: 1.4rem;
+  }
+  .chat-window__empty-subtitle {
+    font-size: 0.85rem;
+  }
+  .message__avatar {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Add to Chat.css */
+.code-block {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 @media (max-width: 480px) {
-  .chat-window__cards  { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .chat-window__messages { padding: 0 10px; }
-  .chat-input-area     { padding: 8px 10px 14px; }
-  .message__wrapper    { max-width: 86%; }
-  .message__actions    { opacity: 1; }
+  .code-block pre {
+    font-size: 0.74rem !important;
+  }
 }
