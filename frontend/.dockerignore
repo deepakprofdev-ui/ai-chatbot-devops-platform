@@ -1,0 +1,38 @@
+# ============================================
+# Lap AI — Frontend .dockerignore
+# ============================================
+
+# Version control
+.git
+.gitignore
+
+# Dependencies — reinstalled fresh via npm ci in the build stage
+node_modules/
+
+# Build output — regenerated inside the container
+dist/
+build/
+
+# Environment files — never bake secrets into the image
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE / OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs
+README.md
+*.md
+
+# Vite cache
+.vite/
