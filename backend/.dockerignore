@@ -1,0 +1,43 @@
+# ============================================
+# Lap AI — Backend .dockerignore
+# ============================================
+
+# Version control
+.git
+.gitignore
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments — never ship these, they're rebuilt via requirements.txt
+venv/
+env/
+.venv/
+*.egg-info/
+
+# Environment secrets — never bake these into the image
+.env
+.env.*
+!.env.example
+
+# IDE / OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Tests (optional — keep if you want smaller prod images;
+# remove this line if Jenkins runs tests inside the container)
+tests/
+test_*.py
+*_test.py
+
+# Docs
+README.md
+*.md
