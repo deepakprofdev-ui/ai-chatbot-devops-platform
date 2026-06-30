@@ -1,9 +1,11 @@
 /**
- * Sidebar.jsx — Updated: onNavSelect prop for bookmarks/settings routing.
+ * Sidebar.jsx
+ * Adds: live drag-to-close gesture, swipe gesture, fully mobile-audited
  */
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import LapLogo from '../../assets/LapLogo';
+import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 import './Sidebar.css';
 
 const IconChat = () => (
@@ -57,7 +59,7 @@ function groupByDate(history) {
   [...history].reverse().forEach(s => {
     const d   = new Date(s.timestamp);
     const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    if (day >= today)        groups['Today'].push(s);
+    if (day >= today)         groups['Today'].push(s);
     else if (day >= yesterday) groups['Yesterday'].push(s);
     else if (day >= weekAgo)   groups['This Week'].push(s);
     else                       groups['Older'].push(s);
@@ -65,8 +67,12 @@ function groupByDate(history) {
   return groups;
 }
 
+const SIDEBAR_WIDTH = 280; // matches CSS --sidebar-width
+
 export default function Sidebar({
   isOpen,
+  onClose,
+  onOpen,
   onNewChat,
   history,
   onLoadSession,
@@ -76,6 +82,47 @@ export default function Sidebar({
   const [activeNav,   setActiveNav]   = useState('chat');
   const [historyOpen, setHistoryOpen] = useState(true);
 
+  /* ── Live drag-to-close state ────────────────── */
+  const [dragX, setDragX]     = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const asideRef    = useRef(null);
+
+  const handleTouchStart = useCallback((e) => {
+    dragStartX.current = e.touches[0].clientX;
+    setDragging(true);
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!dragging) return;
+    const delta = e.touches[0].clientX - dragStartX.current;
+    // Only allow dragging left (closing direction), clamp at 0
+    setDragX(Math.min(0, delta));
+  }, [dragging]);
+
+  const handleTouchEnd = useCallback(() => {
+    setDragging(false);
+    // If dragged more than 1/3 of sidebar width, close it
+    if (Math.abs(dragX) > SIDEBAR_WIDTH / 3) {
+      onClose?.();
+    }
+    setDragX(0);
+  }, [dragX, onClose]);
+
+  /* ── Edge-swipe to open (when sidebar is closed, mobile only) ─── */
+  useSwipeGesture({
+    enabled: !isOpen,
+    edgeOnly: true,
+    edgeWidth: 24,
+    onSwipeRight: () => onOpen?.(),
+  });
+
+  /* ── Swipe anywhere on open sidebar to close ─── */
+  useSwipeGesture({
+    enabled: isOpen,
+    onSwipeLeft: () => onClose?.(),
+  });
+
   const handleNav = (id) => {
     setActiveNav(id);
     if (id === 'history') { setHistoryOpen(o => !o); return; }
@@ -84,101 +131,131 @@ export default function Sidebar({
 
   const grouped = groupByDate(history);
 
+  /* Transform style for live drag feedback (mobile only — CSS handles desktop) */
+  const dragStyle = dragging
+    ? { transform: `translateX(${dragX}px)`, transition: 'none' }
+    : {};
+
   return (
-    <aside className={`sidebar${isOpen ? '' : ' sidebar--closed'}`} aria-label="Main navigation">
+    <>
+      {isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={onClose}
+          aria-hidden="true"
+          style={dragging ? { opacity: Math.max(0, 1 - Math.abs(dragX) / SIDEBAR_WIDTH) } : {}}
+        />
+      )}
 
-      {/* Brand */}
-      <div className="sidebar__brand">
-        <div className="sidebar__logo" aria-hidden="true">
-          <LapLogo size={26} />
-        </div>
-        <div className="sidebar__brand-text">
-          <span className="sidebar__brand-name">Lap AI</span>
-          <span className="sidebar__brand-tagline">Your Intelligent Assistant</span>
-        </div>
-      </div>
+      <aside
+        ref={asideRef}
+        className={`sidebar${isOpen ? '' : ' sidebar--closed'}`}
+        aria-label="Main navigation"
+        style={dragStyle}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Drag handle indicator (mobile only, via CSS) */}
+        <div className="sidebar__drag-handle" aria-hidden="true" />
 
-      {/* New Chat */}
-      <button className="sidebar__new-chat" onClick={onNewChat} aria-label="Start new chat">
-        <IconPlus /> New Chat
-      </button>
-
-      {/* Nav */}
-      <nav className="sidebar__nav" aria-label="Sidebar navigation">
-        <span className="sidebar__section-label">Menu</span>
-
-        <button className={`sidebar__nav-item${activeNav === 'chat' ? ' active' : ''}`} onClick={() => handleNav('chat')}>
-          <IconChat /> Chat
+        {/* Mobile close button */}
+        <button className="sidebar__mobile-close" onClick={onClose} aria-label="Close sidebar">
+          ✕
         </button>
 
-        <button
-          className={`sidebar__nav-item${activeNav === 'history' ? ' active' : ''}`}
-          onClick={() => handleNav('history')}
-          aria-expanded={historyOpen}
-        >
-          <IconHistory /> History
-          {history.length > 0 && <span className="sidebar__nav-badge">{history.length}</span>}
-          <span className="sidebar__nav-chevron"><IconChevron open={historyOpen && activeNav === 'history'} /></span>
-        </button>
-
-        {/* History list */}
-        {activeNav === 'history' && historyOpen && (
-          <div className="sidebar__history-list" role="list">
-            {history.length === 0 ? (
-              <div className="sidebar__history-empty">No past conversations yet.</div>
-            ) : (
-              Object.entries(grouped).map(([group, sessions]) =>
-                sessions.length === 0 ? null : (
-                  <div key={group}>
-                    <div className="sidebar__history-group-label">{group}</div>
-                    {sessions.map(session => (
-                      <button
-                        key={session.id}
-                        className={`sidebar__history-item${session.id === currentSessionId ? ' active' : ''}`}
-                        onClick={() => onLoadSession(session)}
-                        role="listitem"
-                        title={session.preview}
-                      >
-                        <span className="sidebar__history-dot" />
-                        <span className="sidebar__history-preview">{session.preview || 'Untitled'}</span>
-                      </button>
-                    ))}
-                  </div>
-                )
-              )
-            )}
+        {/* Brand */}
+        <div className="sidebar__brand">
+          <div className="sidebar__logo" aria-hidden="true">
+            <LapLogo size={26} />
           </div>
-        )}
-
-        <button className={`sidebar__nav-item${activeNav === 'bookmarks' ? ' active' : ''}`} onClick={() => handleNav('bookmarks')}>
-          <IconBookmark /> Bookmarks
-        </button>
-
-        <button className={`sidebar__nav-item${activeNav === 'profile' ? ' active' : ''}`} onClick={() => handleNav('profile')}>
-          <IconUser /> Profile
-        </button>
-
-        <button className={`sidebar__nav-item${activeNav === 'settings' ? ' active' : ''}`} onClick={() => handleNav('settings')}>
-          <IconSettings /> Settings
-        </button>
-      </nav>
-
-      {/* Upgrade */}
-      <div className="sidebar__upgrade">
-        <div className="sidebar__upgrade-label">✦ Pro Plan</div>
-        <div className="sidebar__upgrade-title">Unlock Full Access</div>
-        <div className="sidebar__upgrade-desc">Priority responses, longer context, advanced features.</div>
-        <button className="sidebar__upgrade-btn">Upgrade Now →</button>
-      </div>
-
-      {/* Profile */}
-      <div className="sidebar__profile" role="button" tabIndex={0} aria-label="User profile">
-        <div className="sidebar__avatar" aria-hidden="true">DK</div>
-        <div className="sidebar__profile-info">
-          <div className="sidebar__profile-name">Deepak K</div>
-          <div className="sidebar__profile-role">AI & Data Science</div>
+          <div className="sidebar__brand-text">
+            <span className="sidebar__brand-name">Lap AI</span>
+            <span className="sidebar__brand-tagline">Your Intelligent Assistant</span>
+          </div>
         </div>
-      </div>
-    </aside>
+
+        {/* New Chat */}
+        <button className="sidebar__new-chat" onClick={onNewChat} aria-label="Start new chat">
+          <IconPlus /> New Chat
+        </button>
+
+        {/* Nav */}
+        <nav className="sidebar__nav" aria-label="Sidebar navigation">
+          <span className="sidebar__section-label">Menu</span>
+
+          <button className={`sidebar__nav-item${activeNav === 'chat' ? ' active' : ''}`} onClick={() => handleNav('chat')}>
+            <IconChat /> Chat
+          </button>
+
+          <button
+            className={`sidebar__nav-item${activeNav === 'history' ? ' active' : ''}`}
+            onClick={() => handleNav('history')}
+            aria-expanded={historyOpen}
+          >
+            <IconHistory /> History
+            {history.length > 0 && <span className="sidebar__nav-badge">{history.length}</span>}
+            <span className="sidebar__nav-chevron"><IconChevron open={historyOpen && activeNav === 'history'} /></span>
+          </button>
+
+          {activeNav === 'history' && historyOpen && (
+            <div className="sidebar__history-list" role="list">
+              {history.length === 0 ? (
+                <div className="sidebar__history-empty">No past conversations yet.</div>
+              ) : (
+                Object.entries(grouped).map(([group, sessions]) =>
+                  sessions.length === 0 ? null : (
+                    <div key={group}>
+                      <div className="sidebar__history-group-label">{group}</div>
+                      {sessions.map(session => (
+                        <button
+                          key={session.id}
+                          className={`sidebar__history-item${session.id === currentSessionId ? ' active' : ''}`}
+                          onClick={() => onLoadSession(session)}
+                          role="listitem"
+                          title={session.preview}
+                        >
+                          <span className="sidebar__history-dot" />
+                          <span className="sidebar__history-preview">{session.preview || 'Untitled'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )
+              )}
+            </div>
+          )}
+
+          <button className={`sidebar__nav-item${activeNav === 'bookmarks' ? ' active' : ''}`} onClick={() => handleNav('bookmarks')}>
+            <IconBookmark /> Bookmarks
+          </button>
+
+          <button className={`sidebar__nav-item${activeNav === 'profile' ? ' active' : ''}`} onClick={() => handleNav('profile')}>
+            <IconUser /> Profile
+          </button>
+
+          <button className={`sidebar__nav-item${activeNav === 'settings' ? ' active' : ''}`} onClick={() => handleNav('settings')}>
+            <IconSettings /> Settings
+          </button>
+        </nav>
+
+        {/* Upgrade */}
+        <div className="sidebar__upgrade">
+          <div className="sidebar__upgrade-label">✦ Pro Plan</div>
+          <div className="sidebar__upgrade-title">Unlock Full Access</div>
+          <div className="sidebar__upgrade-desc">Priority responses, longer context, advanced features.</div>
+          <button className="sidebar__upgrade-btn">Upgrade Now →</button>
+        </div>
+
+        {/* Profile */}
+        <div className="sidebar__profile" role="button" tabIndex={0} aria-label="User profile">
+          <div className="sidebar__avatar" aria-hidden="true">DK</div>
+          <div className="sidebar__profile-info">
+            <div className="sidebar__profile-name">Deepak K</div>
+            <div className="sidebar__profile-role">AI & Data Science</div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

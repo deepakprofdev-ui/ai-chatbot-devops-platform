@@ -369,3 +369,72 @@
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ══════════════════════════════════════════════
+   MOBILE DRAWER — swipe, drag handle, close btn
+   ══════════════════════════════════════════════ */
+
+.sidebar__drag-handle {
+  display: none;
+}
+
+.sidebar__mobile-close {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    box-shadow: 6px 0 32px rgba(0,0,0,0.4);
+    touch-action: pan-y; /* allow vertical scroll inside sidebar, horizontal handled by JS */
+  }
+
+  /* Visual drag handle on the right edge — signals "slidable" */
+  .sidebar__drag-handle {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 56px;
+    background: rgba(255,255,255,0.15);
+    border-radius: var(--radius-full);
+  }
+
+  /* Explicit close button for mobile (in addition to swipe/backdrop) */
+  .sidebar__mobile-close {
+    display: flex;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    border-radius: var(--radius-full);
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .sidebar__mobile-close:hover {
+    background: rgba(255,255,255,0.16);
+    color: #fff;
+  }
+
+  .sidebar__brand {
+    padding-right: 56px; /* avoid overlap with close button */
+  }
+}
+
+@media (min-width: 901px) {
+  .sidebar__mobile-close,
+  .sidebar__drag-handle {
+    display: none !important;
+  }
+}

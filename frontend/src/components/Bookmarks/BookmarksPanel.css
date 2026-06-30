@@ -225,4 +225,6 @@
 
 @media (max-width: 480px) {
   .bookmarks-panel { width: 100vw; }
+  .bookmarks-panel__header { padding: 18px 16px 14px; }
+  .bookmarks-panel__search { padding: 10px 16px; }
 }
