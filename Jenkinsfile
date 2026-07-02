@@ -7,17 +7,16 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout Source') {
             steps {
-                echo "📥 Checking out source code..."
+                echo '📥 Checking out source code...'
                 checkout scm
             }
         }
 
         stage('Verify Tools') {
             steps {
-                echo "🔍 Verifying installed tools..."
+                echo '🔍 Verifying installed tools...'
 
                 sh 'git --version'
                 sh 'docker --version'
@@ -30,7 +29,7 @@ pipeline {
 
         stage('Project Structure') {
             steps {
-                echo "📂 Listing project structure..."
+                echo '📂 Listing project structure...'
                 sh 'ls -la'
             }
         }
@@ -38,11 +37,11 @@ pipeline {
         stage('Install Backend Dependencies') {
             steps {
                 dir('backend') {
-                    echo "📦 Installing backend dependencies..."
-
                     sh '''
-                    python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
                     '''
                 }
             }
@@ -51,10 +50,9 @@ pipeline {
         stage('Backend Tests') {
             steps {
                 dir('backend') {
-                    echo "🧪 Running backend tests..."
-
                     sh '''
-                    PYTHONPATH=. pytest -v
+                        . venv/bin/activate
+                        PYTHONPATH=. pytest -v
                     '''
                 }
             }
@@ -63,7 +61,7 @@ pipeline {
         stage('Install Frontend Dependencies') {
             steps {
                 dir('frontend') {
-                    echo "📦 Installing frontend dependencies..."
+                    echo '📦 Installing frontend dependencies...'
 
                     sh '''
                     npm install
@@ -75,7 +73,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    echo "⚛️ Building React application..."
+                    echo '⚛️ Building React application...'
 
                     sh '''
                     npm run build
@@ -87,7 +85,7 @@ pipeline {
         stage('Build Backend Docker Image') {
             steps {
                 dir('backend') {
-                    echo "🐳 Building backend Docker image..."
+                    echo '🐳 Building backend Docker image...'
 
                     sh """
                     docker build -t ${BACKEND_IMAGE} .
@@ -99,7 +97,7 @@ pipeline {
         stage('Build Frontend Docker Image') {
             steps {
                 dir('frontend') {
-                    echo "🐳 Building frontend Docker image..."
+                    echo '🐳 Building frontend Docker image...'
 
                     sh """
                     docker build -t ${FRONTEND_IMAGE} .
@@ -110,16 +108,14 @@ pipeline {
 
         stage('List Docker Images') {
             steps {
-                echo "📋 Available Docker images..."
+                echo '📋 Available Docker images...'
 
                 sh 'docker images'
             }
         }
-
     }
 
     post {
-
         success {
             echo '🎉 Pipeline completed successfully!'
         }
