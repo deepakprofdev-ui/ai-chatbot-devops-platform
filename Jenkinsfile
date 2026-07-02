@@ -19,6 +19,7 @@ pipeline {
             steps {
                 sh 'git --version'
                 sh 'docker --version'
+                sh 'trivy --version'
             }
         }
 
@@ -45,11 +46,60 @@ pipeline {
                 sh 'docker images | grep lapai'
             }
         }
+
+        stage('Trivy Scan - Backend') {
+            steps {
+                echo "Scanning ${BACKEND_IMAGE} for vulnerabilities..."
+                sh """
+                    trivy image --format template \
+                    --template '@/usr/local/share/trivy/templates/html.tpl' \
+                    --output backend-trivy-report.html \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 0 \
+                    ${BACKEND_IMAGE}
+                """
+            }
+        }
+
+        stage('Trivy Scan - Frontend') {
+            steps {
+                echo "Scanning ${FRONTEND_IMAGE} for vulnerabilities..."
+                sh """
+                    trivy image --format template \
+                    --template '@/usr/local/share/trivy/templates/html.tpl' \
+                    --output frontend-trivy-report.html \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 0 \
+                    ${FRONTEND_IMAGE}
+                """
+            }
+        }
+
+        stage('Publish Security Reports') {
+            steps {
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: '.',
+                    reportFiles: 'backend-trivy-report.html',
+                    reportName: 'Trivy Report - Backend'
+                ])
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: '.',
+                    reportFiles: 'frontend-trivy-report.html',
+                    reportName: 'Trivy Report - Frontend'
+                ])
+            }
+        }
     }
 
     post {
         success {
-            echo "✅ Both images built successfully: ${BACKEND_IMAGE}, ${FRONTEND_IMAGE}"
+            echo "✅ Build, scan, and reports complete: ${BACKEND_IMAGE}, ${FRONTEND_IMAGE}"
         }
         failure {
             echo '❌ Pipeline failed. Check logs above.'
