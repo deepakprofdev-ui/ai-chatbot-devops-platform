@@ -88,19 +88,34 @@ pipeline {
                     echo '🐳 Building backend Docker image...'
 
                     sh """
-                    docker build -t ${BACKEND_IMAGE} .
+                    docker build \
+                      -t ${BACKEND_IMAGE} \
+                      -t lapai-backend:latest .
                     """
                 }
             }
         }
 
+        stage('Trivy Scan - Backend') {
+            steps {
+                sh """
+                trivy image \
+                  --skip-version-check \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  ${BACKEND_IMAGE}
+                """
+            }
+        }
         stage('Build Frontend Docker Image') {
             steps {
                 dir('frontend') {
                     echo '🐳 Building frontend Docker image...'
 
                     sh """
-                    docker build -t ${FRONTEND_IMAGE} .
+                    docker build \
+                      -t ${FRONTEND_IMAGE} \
+                      -t lapai-frontend:latest .
                     """
                 }
             }
